@@ -3,5 +3,15 @@
     <string name="ask_location_permissions">Access to the location is needed</string>
     <string name="ok">OK</string>
     <string name="action_search">Search</string>
-    <string name="refresh">Try again</string>
+    <string name="try_again">Try again</string>
+    <string name="first_light_at">First light at</string>
+    <string name="sunrise_time">Sunrise time:</string>
+    <string name="sunset_time">Sunset time:</string>
+    <string name="last_light_at">Last light at</string>
+    <string name="sunrise_and_sunset_times_in">Sunrise and sunset times in</string>
+    <string name="today">Today</string>
+    <string name="day_length">Day length:</string>
+    <string name="loading_location">Loading location</string>
+    <string name="loading_data">Loading data</string>
+    <string name="time_zone_warning">You need to consider the time zone of the place</string>
 </resources>

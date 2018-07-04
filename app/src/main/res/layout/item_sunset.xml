@@ -19,7 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Sunset time:"
+            android:text="@string/sunset_time"
             android:textColor="@color/colorBlack" />
 
         <TextView
@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
             android:layout_weight="1"
-            android:text="Last light at 10:06:54 PM" />
+            android:text="@string/last_light_at" />
     </LinearLayout>
 
     <ImageView
