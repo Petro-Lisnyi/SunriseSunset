@@ -32,6 +32,16 @@ import com.google.android.gms.location.places.Places;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.testtask.sunsetandsunrise.data.Result;
+import com.testtask.sunsetandsunrise.data.SunriseSunsetApi;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
     private final String TAG = this.getClass().getSimpleName();
@@ -48,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
 
     protected GeoDataClient mGeoDataClient;
     protected PlaceDetectionClient mPlaceDetectionClient;
+
+    private SunriseSunsetApi mSunriseSunsetApi;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,13 +79,14 @@ public class MainActivity extends AppCompatActivity {
         mPlaceDetectionClient = Places.getPlaceDetectionClient(this);
 
         initCurrentPlace();
+        createSunriseSunsetApi();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("MissingPermission")
             @Override
             public void onClick(View view) {
-
+                mSunriseSunsetApi.getResult(mCurrentLat, mCurrentLng).enqueue(resultCallback);
             }
         });
     }
@@ -191,5 +204,37 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
             Log.e(TAG, e.getMessage());
         }
+    }
+
+    Callback<Result> resultCallback = new Callback<Result>() {
+        @Override
+        public void onResponse(Call<Result> call, Response<Result> response) {
+            Result result = response.body();
+            showResult(result);
+        }
+
+        @Override
+        public void onFailure(Call<Result> call, Throwable t) {
+            Log.e(TAG, "Call: " + call.toString() + "\n Throwable: " + t.getLocalizedMessage());
+        }
+    };
+
+    private void createSunriseSunsetApi() {
+        Gson gson = new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+                .create();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(SunriseSunsetApi.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .build();
+
+        mSunriseSunsetApi = retrofit.create(SunriseSunsetApi.class);
+    }
+
+    private void showResult(Result result){
+        //TODO: make showing results
+        Toast.makeText(getApplicationContext(),
+                result.getResults().getDayLength(), Toast.LENGTH_LONG).show();
     }
 }
