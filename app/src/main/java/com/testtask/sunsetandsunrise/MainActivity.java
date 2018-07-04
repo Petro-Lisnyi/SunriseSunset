@@ -116,7 +116,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //get cache
         Result result = getLastPlaceCache();
-        if (result == null || result.getResults() == null) initCurrentPlace();
+        if ((result == null || result.getResults() == null) &&
+                !isRestrictedLocationPermission()) initCurrentPlace();
         else showResults(result);
     }
 
@@ -150,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mLocationPermission =
                     !ActivityCompat.shouldShowRequestPermissionRationale(this,
                             Manifest.permission.ACCESS_FINE_LOCATION);
-            if (mLocationPermission || isRestrictedLocationPermission())
+            if (mLocationPermission && isRestrictedLocationPermission())
                 requestLocationPermission();
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -425,7 +426,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         float longitude = (float) foundPlace.getLatLng().longitude;
         String s = foundPlace.getAddress() + "";
 
-        FoundCityFragment cityFragment =  FoundCityFragment.newInstance(latitude, longitude, s);
+        FoundCityFragment cityFragment = FoundCityFragment.newInstance(latitude, longitude, s);
         cityFragment.setStyle(DialogFragment.STYLE_NO_TITLE, 0);
         cityFragment.show(getSupportFragmentManager(), "FoundCityDialog");
     }
