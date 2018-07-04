@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SunriseSunset</string>
+    <string name="ask_location_permissions">Необхідний доступ до геоданих</string>
+    <string name="ok">Гаразд</string>
+    <string name="action_search">Пошук</string>
+    <string name="try_again">"Спробувати ще "</string>
+    <string name="first_light_at">Перші промені о</string>
+    <string name="sunrise_time">Схід сонця:</string>
+    <string name="sunset_time">Захід сонця:</string>
+    <string name="last_light_at">Останні промені о</string>
+    <string name="sunrise_and_sunset_times_in">Час сходу та заходу сонця у такому місці:\n</string>
+    <string name="today">Сьогодні</string>
+    <string name="day_length">Тривалість дня:</string>
+    <string name="loading_location">Визначення місцезнаходження</string>
+    <string name="loading_data">Завантаження даних</string>
+    <string name="time_zone_warning">Вам необхідно враховувати часовий пояс даного місця</string>
+</resources>
