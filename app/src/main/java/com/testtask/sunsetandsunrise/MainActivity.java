@@ -3,10 +3,12 @@ package com.testtask.sunsetandsunrise;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
@@ -57,8 +59,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private final static int PLACE_AUTOCOMPLETE_REQUEST_CODE = 0;
 
+    private final static String LAST_RESULT_SHARED_PREF_KEY = "last_result";
 
-    private String mCityName;
+
+    private String mCityAddress;
     private float mCurrentLat;
     private float mCurrentLng;
 
@@ -110,7 +114,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Construct a PlaceDetectionClient.
         mPlaceDetectionClient = Places.getPlaceDetectionClient(this);
 
-        initCurrentPlace();
+        //get cache
+        Result result = getLastPlaceCache();
+        if (result == null || result.getResults() == null) initCurrentPlace();
+        else showResults(result);
     }
 
     @Override
@@ -246,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Place place = task.getResult().get(0).getPlace();
                     mCurrentLat = (float) place.getLatLng().latitude;
                     mCurrentLng = (float) place.getLatLng().longitude;
-                    mCityName = place.getAddress()+ "";
+                    mCityAddress = place.getAddress() + "";
                     Log.i(TAG, "Current place: " + place.getName() + " with latitude - " +
                             mCurrentLat + ", longitude - " + mCurrentLng + ".");
 
@@ -290,6 +297,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void onResponse(Call<Result> call, Response<Result> response) {
             Result result = response.body();
             showResults(result);
+            cachePlace(result);
         }
 
         @Override
@@ -324,7 +332,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mLinearErrorInfo.setVisibility(View.GONE);
         mFabRefresh.setVisibility(View.VISIBLE);
 
-        String str  = getString(R.string.sunrise_and_sunset_times_in) + " " + mCityName;
+        String str;
+        if (result.getResults().getCityAddress() == null)
+            str = getString(R.string.sunrise_and_sunset_times_in) + " " + mCityAddress;
+        else str = getString(R.string.sunrise_and_sunset_times_in) + " " +
+                result.getResults().getCityAddress();
+
         mTextLocation.setText(str);
 
         str = getString(R.string.today) + " " + getDate();
@@ -360,8 +373,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mTextError.setText(msg);
     }
 
-    private String getDate(){
-        return  new SimpleDateFormat("EEE, MMM d, yyyy, HH:mm",
+    /**
+     * Cache place information
+     */
+    private void cachePlace(Result result) {
+        result.getResults().setLatitude(mCurrentLat);
+        result.getResults().setLongitude(mCurrentLng);
+        result.getResults().setCityAddress(mCityAddress);
+
+        SharedPreferences appSharedPrefs = PreferenceManager
+                .getDefaultSharedPreferences(this.getApplicationContext());
+        SharedPreferences.Editor prefsEditor = appSharedPrefs.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(result);
+        prefsEditor.putString(LAST_RESULT_SHARED_PREF_KEY, json);
+        prefsEditor.apply();
+    }
+
+    /**
+     * Return last cached place information
+     */
+    private Result getLastPlaceCache() {
+        SharedPreferences appSharedPrefs = PreferenceManager
+                .getDefaultSharedPreferences(this.getApplicationContext());
+        Gson gson = new Gson();
+        String json = appSharedPrefs.getString(LAST_RESULT_SHARED_PREF_KEY, "");
+        return gson.fromJson(json, Result.class);
+    }
+
+
+    private String getDate() {
+        return new SimpleDateFormat("EEE, MMM d, yyyy, HH:mm",
                 getResources().getConfiguration().locale).format(Calendar.getInstance().getTime());
     }
 }

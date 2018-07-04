@@ -37,6 +37,17 @@ public class Results {
     @Expose
     private String astronomicalTwilightEnd;
 
+    @SerializedName("city_address")
+    @Expose
+    private String cityAddress;
+
+    @SerializedName("latitude")
+    @Expose
+    private float latitude;
+    @SerializedName("longitude")
+    @Expose
+    private float longitude;
+
     public String getSunrise() {
         return sunrise;
     }
@@ -117,4 +128,27 @@ public class Results {
         this.astronomicalTwilightEnd = astronomicalTwilightEnd;
     }
 
+    public String getCityAddress() {
+        return cityAddress;
+    }
+
+    public void setCityAddress(String cityAddress) {
+        this.cityAddress = cityAddress;
+    }
+
+    public float getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(float latitude) {
+        this.latitude = latitude;
+    }
+
+    public float getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(float longitude) {
+        this.longitude = longitude;
+    }
 }
