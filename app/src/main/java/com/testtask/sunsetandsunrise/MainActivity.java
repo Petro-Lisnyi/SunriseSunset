@@ -16,6 +16,7 @@ import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -85,7 +86,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private TextView mTextLoading;
     private TextView mTextError;
-    private Button mButtonTryAgain;
     private FloatingActionButton mFabRefresh;
 
     protected GeoDataClient mGeoDataClient;
@@ -120,21 +120,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         else showResults(result);
     }
 
+    @SuppressLint("MissingSuperCall")
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        //No call for super(). Bug on API Level > 11.
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
-                Place place = PlaceAutocomplete.getPlace(this, data);
-                Log.i(TAG, "Current place: " + place.getName() + " with latitude - " +
-                        place.getLatLng().latitude + ", longitude - " + place.getLatLng().longitude);
-                // TODO: Handle the result.
+
+                showFoundCity(PlaceAutocomplete.getPlace(this, data));
+
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
                 Status status = PlaceAutocomplete.getStatus(this, data);
-                // TODO: Handle the error.
                 Log.e(TAG, status.getStatusMessage());
 
             } else if (resultCode == RESULT_CANCELED) {
-                // The user canceled the operation.
+                Log.i(TAG, "The user canceled the operation.");
             }
         }
     }
@@ -171,6 +175,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 initCurrentPlace();
                 break;
             case R.id.fab_refresh:
+                clearPlaceCache();
                 initCurrentPlace();
                 break;
         }
@@ -219,10 +224,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mTextLoading = findViewById(R.id.text_loading_info);
         mTextError = findViewById(R.id.text_error_info);
 
-        mButtonTryAgain = findViewById(R.id.button_try_again);
+        Button buttonTryAgain = findViewById(R.id.button_try_again);
         mFabRefresh = findViewById(R.id.fab_refresh);
 
-        mButtonTryAgain.setOnClickListener(this);
+        buttonTryAgain.setOnClickListener(this);
         mFabRefresh.setOnClickListener(this);
     }
 
@@ -352,7 +357,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mTextSunrise.setText(R.string.sunrise_time);
         mTextSunriseTime.setText(result.getResults().getSunrise());
 
-        mTextDayLength.setText(R.string.sunset_time);
+        mTextSunset.setText(R.string.sunset_time);
         mTextSunsetTime.setText(result.getResults().getSunset());
 
         str = getString(R.string.day_length) + " " + result.getResults().getDayLength();
@@ -381,9 +386,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         result.getResults().setLongitude(mCurrentLng);
         result.getResults().setCityAddress(mCityAddress);
 
-        SharedPreferences appSharedPrefs = PreferenceManager
+        SharedPreferences sharedPreferences = PreferenceManager
                 .getDefaultSharedPreferences(this.getApplicationContext());
-        SharedPreferences.Editor prefsEditor = appSharedPrefs.edit();
+        SharedPreferences.Editor prefsEditor = sharedPreferences.edit();
         Gson gson = new Gson();
         String json = gson.toJson(result);
         prefsEditor.putString(LAST_RESULT_SHARED_PREF_KEY, json);
@@ -394,13 +399,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * Return last cached place information
      */
     private Result getLastPlaceCache() {
-        SharedPreferences appSharedPrefs = PreferenceManager
+        SharedPreferences sharedPreferences = PreferenceManager
                 .getDefaultSharedPreferences(this.getApplicationContext());
         Gson gson = new Gson();
-        String json = appSharedPrefs.getString(LAST_RESULT_SHARED_PREF_KEY, "");
+        String json = sharedPreferences.getString(LAST_RESULT_SHARED_PREF_KEY, "");
         return gson.fromJson(json, Result.class);
     }
 
+    /**
+     * Clear cached place information
+     */
+    private void clearPlaceCache() {
+        SharedPreferences sharedPreferences = PreferenceManager
+                .getDefaultSharedPreferences(this.getApplicationContext());
+        SharedPreferences.Editor prefsEditor = sharedPreferences.edit();
+        prefsEditor.putString(LAST_RESULT_SHARED_PREF_KEY, null);
+        prefsEditor.apply();
+    }
+
+    /**
+     * Show results about found city
+     */
+    private void showFoundCity(Place foundPlace) {
+        float latitude = (float) foundPlace.getLatLng().latitude;
+        float longitude = (float) foundPlace.getLatLng().longitude;
+        String s = foundPlace.getAddress() + "";
+
+        FoundCityFragment cityFragment =  FoundCityFragment.newInstance(latitude, longitude, s);
+        cityFragment.setStyle(DialogFragment.STYLE_NO_TITLE, 0);
+        cityFragment.show(getSupportFragmentManager(), "FoundCityDialog");
+    }
 
     private String getDate() {
         return new SimpleDateFormat("EEE, MMM d, yyyy, HH:mm",
